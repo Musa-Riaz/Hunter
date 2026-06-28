@@ -143,21 +143,10 @@ def scrape_linkedin(keyword: str, location: str = "Pakistan", browser_context=No
                 if not title:
                     continue
 
-                # get description
-                description = ""
-                if href:
-                    detail_page = browser_context.new_page()
-                    try:
-                        detail_page.goto(href, wait_until="load", timeout=20000)
-                        time.sleep(2)
-                        desc_el = detail_page.query_selector("div.description__text, div.show-more-less-html__markup")
-                        if desc_el:
-                            description = desc_el.inner_text().strip()[:1500]
-                    except:
-                        pass
-                    finally:
-                        detail_page.close()
-                    time.sleep(random.uniform(1, 2.5))
+            # get description from snippet on listing page
+                snippet_el = card.query_selector(".job-snippet, [data-testid='snippet']")
+                description = snippet_el.inner_text().strip()[:500] if snippet_el else ""
+                time.sleep(random.uniform(1, 2.5))
 
                 jobs.append({
                     "title": title,
@@ -193,7 +182,7 @@ def run_all_scrapers(keyword: str, location: str):
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=True,  # keep visible for now so you can watch what happens
+            headless=True, 
             args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"]
         )
         context = browser.new_context(
@@ -221,8 +210,6 @@ def run_all_scrapers(keyword: str, location: str):
         linkedin_jobs = scrape_linkedin(keyword, location, context)
         all_jobs.extend(linkedin_jobs)
         print(f"LinkedIn total: {len(linkedin_jobs)}")
-
-        time.sleep(2)
 
         browser.close()
 
