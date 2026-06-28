@@ -5,6 +5,7 @@ import time
 import re
 import httpx
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from playwright.sync_api import sync_playwright
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
@@ -192,7 +193,7 @@ def run_all_scrapers(keyword: str, location: str):
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,  # keep visible for now so you can watch what happens
+            headless=True,  # keep visible for now so you can watch what happens
             args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"]
         )
         context = browser.new_context(
@@ -251,5 +252,4 @@ async def scrape(body: dict):
     return {"jobs": jobs, "count": len(jobs)}
 
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
+handler = app
